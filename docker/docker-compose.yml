@@ -35,9 +35,9 @@ services:
     restart: unless-stopped
     environment:
       DB_HOST: mysql
-      MYSQL_DATABASE: stock
-      MYSQL_USER: stockuser
-      MYSQL_PASSWORD: stockpass
+      MYSQL_DATABASE: pontodb
+      MYSQL_USER: pontouser
+      MYSQL_PASSWORD: pontopass
       MYSQL_ROOT_PASSWORD: rootpass
     volumes:
       - mysql-data:/var/lib/mysql
