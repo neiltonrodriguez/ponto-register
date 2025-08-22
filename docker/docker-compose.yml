@@ -52,7 +52,7 @@ services:
     working_dir: /var/www
     volumes:
       - ../application:/var/www
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install && npm run dev -- --host"
     ports:
       - "5173:5173"
     depends_on:
