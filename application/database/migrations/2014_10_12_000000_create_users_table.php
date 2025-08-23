@@ -8,24 +8,26 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('cpf', 14)->unique()->after('email');
-            $table->string('position')->after('cpf');
-            $table->date('birth_date')->after('position');
-            $table->string('zip_code', 9)->after('birth_date');
-            $table->string('address')->after('zip_code');
-            $table->string('number')->after('address');
-            $table->string('complement')->nullable()->after('number');
-            $table->string('neighborhood')->after('complement');
-            $table->string('city')->after('neighborhood');
-            $table->string('state', 2)->after('city');
-            $table->enum('role', ['employee', 'admin'])->default('employee')->after('state');
-            $table->unsignedBigInteger('admin_id')->nullable()->after('role');
-            
+            $table->string('cpf', 14)->unique();
+            $table->string('password');
+            $table->string('position');
+            $table->date('birth_date');
+            $table->string('zip_code', 9);
+            $table->string('address');
+            $table->string('number');
+            $table->string('complement')->nullable();
+            $table->string('neighborhood');
+            $table->string('city');
+            $table->string('state', 2);
+            $table->enum('role', ['employee', 'admin'])->default('employee');
+            $table->unsignedBigInteger('admin_id')->nullable();
+
             $table->foreign('admin_id')->references('id')->on('users')->onDelete('set null');
+            $table->timestamps();
         });
     }
 
@@ -33,10 +35,8 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropForeign(['admin_id']);
-            $table->dropColumn([
-                'name', 'email', 'cpf', 'position', 'birth_date', 'zip_code', 'address', 'number', 
-                'complement', 'neighborhood', 'city', 'state', 'role', 'admin_id'
-            ]);
         });
+
+        Schema::dropIfExists('users');
     }
 };
