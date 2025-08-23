@@ -79,10 +79,13 @@ class AdminController extends Controller
             'state' => 'required|string|size:2',
         ]);
 
+        $cleanCpf = preg_replace('/\D/', '', $request->cpf);
+        $defaultPassword = substr($cleanCpf, -6);
+
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'cpf' => preg_replace('/\D/', '', $request->cpf),
+            'cpf' => $cleanCpf,
             'position' => $request->position,
             'birth_date' => $request->birth_date,
             'zip_code' => preg_replace('/\D/', '', $request->zip_code),
@@ -92,7 +95,7 @@ class AdminController extends Controller
             'neighborhood' => $request->neighborhood,
             'city' => $request->city,
             'state' => $request->state,
-            'password' => Hash::make('123456'),
+            'password' => Hash::make($defaultPassword),
             'role' => 'employee',
             'admin_id' => Auth::id(),
         ]);
@@ -157,6 +160,24 @@ class AdminController extends Controller
         $employee->delete();
         return redirect()->route('admin.employees')->with('success', 'Employee deleted successfully!');
     }
+
+    public function resetEmployeePassword(User $employee)
+    {
+        if ($employee->admin_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $cleanCpf = preg_replace('/\D/', '', $employee->cpf);
+        $newPassword = substr($cleanCpf, -6);
+
+        $employee->update([
+            'password' => Hash::make($newPassword)
+        ]);
+
+        return redirect()->route('admin.employees')
+            ->with('success', "Password reset successfully! New password: {$newPassword} (last 6 digits of CPF)");
+    }
+
 
     public function timeClocks(Request $request)
     {
