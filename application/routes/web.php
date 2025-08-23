@@ -31,7 +31,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/employees/{employee}/edit', [AdminController::class, 'editEmployee'])->name('employees.edit');
         Route::put('/employees/{employee}', [AdminController::class, 'updateEmployee'])->name('employees.update');
         Route::delete('/employees/{employee}', [AdminController::class, 'destroyEmployee'])->name('employees.destroy');
-        
+        Route::post('/employees/{employee}/reset-password', [AdminController::class, 'resetEmployeePassword'])->name('employees.reset-password');
+
         Route::get('/search-zip-code', [AdminController::class, 'searchZipCode'])->name('search-zip-code');
         
         Route::get('/time-clocks', [AdminController::class, 'timeClocks'])->name('time-clocks');
