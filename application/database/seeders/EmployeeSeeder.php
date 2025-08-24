@@ -45,7 +45,7 @@ class EmployeeSeeder extends Seeder
             'admin_id' => 2,
         ]);
 
-        TimeClock::factory()->count(10)->create(['user_id' => $employee1->id]);
-        TimeClock::factory()->count(10)->create(['user_id' => $employee2->id]);
+        TimeClock::factory()->count(15)->create(['user_id' => $employee1->id]);
+        TimeClock::factory()->count(15)->create(['user_id' => $employee2->id]);
     }
 }

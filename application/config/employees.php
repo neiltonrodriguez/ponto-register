@@ -8,6 +8,5 @@ return [
         'Intern',
         'HR',
         'Finance',
-        'Administrator',
     ],
 ];
