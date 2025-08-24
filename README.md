@@ -80,15 +80,21 @@ O build vai executar as migrations e seeds, factory e testes. A aplicação esta
    ```bash
    cp .env.example .env
    composer install
-   php artisan key:generate
-   php artisan migrate
    npm install
-   npm run dev
    ```
 
-4. Inicie o servidor:
+4. Configurar banco local:
+   ```bash
+   para usar sem docker, precisa ter mysql instalado, crie um novo banco e coloque os dados de acesso ao banco no .env, depois execute os comandos abaixo:
+   
+   php artisan key:generate
+   php artisan migrate
+   ```
+
+5. Inicie o servidor:
    ```bash
    php artisan serve
+   npm run dev
    ```
 
 A aplicação estará disponível em `http://localhost:8000`
