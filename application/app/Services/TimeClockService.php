@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use App\Models\TimeClock;
 
 class TimeClockService
 {
@@ -63,5 +65,24 @@ class TimeClockService
     public function getEmployees()
     {
         return DB::table('users')->where('role', 'employee')->get();
+    }
+
+    public function getLast30DaysTimeClocks()
+    {
+        return Auth::user()->timeClocks()
+            ->where('clocked_at', '>=', now()->subDays(30))
+            ->orderBy('clocked_at', 'desc')
+            ->get()
+            ->groupBy(fn($tc) => $tc->clocked_at->format('Y-m-d'));
+    }
+
+    public function clockIn(Request $request): TimeClock
+    {
+        return TimeClock::create([
+            'user_id'   => Auth::id(),
+            'clocked_at' => now(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
     }
 }

@@ -23,22 +23,45 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $cpf = $this->faker->numerify('###########');
+        
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'cpf' => $cpf,
+            'position' => $this->faker->jobTitle(),
+            'birth_date' => $this->faker->date(),
+            'zip_code' => $this->faker->numerify('########'),
+            'address' => $this->faker->streetAddress(),
+            'number' => $this->faker->buildingNumber(),
+            'complement' => $this->faker->optional()->secondaryAddress(),
+            'neighborhood' => $this->faker->word(),
+            'city' => $this->faker->city(),
+            'state' => $this->faker->stateAbbr(),
+            'password' => Hash::make(substr($cpf, -6)),
+            'role' => $this->faker->randomElement(['admin', 'employee']),
+            'admin_id' => null,
         ];
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * Indicate that the user should be an admin.
      */
-    public function unverified(): static
+    public function admin(): static
     {
         return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+            'role' => 'admin',
+            'admin_id' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the user should be an employee.
+     */
+    public function employee(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'employee',
         ]);
     }
 }

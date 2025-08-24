@@ -21,6 +21,9 @@ if ! grep -q "APP_KEY=" /var/www/.env || [ -z "$APP_KEY" ]; then
   php artisan key:generate
 fi
 
+echo "Executando testes..."
+php artisan test tests/Unit/
+
 php artisan migrate --force
 php artisan db:seed --force
 
