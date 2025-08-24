@@ -22,7 +22,7 @@
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('admin.dashboard') }}" class="text-blue-600 hover:text-blue-800">Dashboard</a>
                         <a href="{{ route('admin.employees') }}" class="text-blue-600 hover:text-blue-800">Employees</a>
-                        <a href="{{ route('admin.time-clocks') }}" class="text-blue-600 hover:text-blue-800">Time Clocks</a>
+                        <a href="{{ route('admin.time-clocks') }}" class="text-blue-600 hover:text-blue-800">Time Clock Reports</a>
                     @else
                         <a href="{{ route('employee.dashboard') }}" class="text-blue-600 hover:text-blue-800">Dashboard</a>
                     @endif

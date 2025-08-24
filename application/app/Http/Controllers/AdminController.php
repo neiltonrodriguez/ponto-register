@@ -11,13 +11,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
     public function dashboard()
     {
         $totalEmployees = User::where('admin_id', Auth::id())->count();
-        $todayClocks = TimeClock::whereHas('user', function($query) {
+        $todayClocks = TimeClock::whereHas('user', function ($query) {
             $query->where('admin_id', Auth::id());
         })->whereDate('clocked_at', today())->count();
 
@@ -32,20 +33,21 @@ class AdminController extends Controller
 
     public function createEmployee()
     {
-        return view('admin.employees.create');
+        $positions = config('employees.positions');
+        return view('admin.employees.create', compact('positions'));
     }
 
     public function searchZipCode(Request $request)
     {
         $zipCode = preg_replace('/\D/', '', $request->zip_code);
-        
+
         if (strlen($zipCode) !== 8) {
             return response()->json(['error' => 'Invalid ZIP code'], 400);
         }
 
         try {
             $response = Http::get("https://viacep.com.br/ws/{$zipCode}/json/");
-            
+
             if ($response->successful() && !isset($response->json()['erro'])) {
                 $data = $response->json();
                 return response()->json([
@@ -55,7 +57,7 @@ class AdminController extends Controller
                     'state' => $data['uf'] ?? ''
                 ]);
             }
-            
+
             return response()->json(['error' => 'ZIP code not found'], 404);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error searching ZIP code'], 500);
@@ -100,7 +102,7 @@ class AdminController extends Controller
             'admin_id' => Auth::id(),
         ]);
 
-        return redirect()->route('admin.employees')->with('success', 'Employee created successfully! Default password: 123456');
+        return redirect()->route('admin.employees')->with('success', 'Employee created successfully!');
     }
 
     public function editEmployee(User $employee)
@@ -109,7 +111,9 @@ class AdminController extends Controller
             abort(403);
         }
 
-        return view('admin.employees.edit', compact('employee'));
+        $positions = config('employees.positions');
+
+        return view('admin.employees.edit', compact('employee', 'positions'));
     }
 
     public function updateEmployee(Request $request, User $employee)
@@ -178,29 +182,62 @@ class AdminController extends Controller
             ->with('success', "Password reset successfully! New password: {$newPassword} (last 6 digits of CPF)");
     }
 
-
     public function timeClocks(Request $request)
     {
-        $query = TimeClock::with('user')
-            ->whereHas('user', function($q) {
-                $q->where('role', 'employee');
-            });
-
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('clocked_at', [
-                $request->start_date . ' 00:00:00',
-                $request->end_date . ' 23:59:59'
-            ]);
-        }
+        $bindings = [];
+        $where = "WHERE u.role = 'employee'";
 
         if ($request->filled('employee_id')) {
-            $query->where('user_id', $request->employee_id);
+            $where .= " AND u.id = ?";
+            $bindings[] = $request->employee_id;
         }
 
-        $timeClocks = $query->orderBy('clocked_at', 'desc')->paginate(10);
-        
-        $employees = User::where('role', 'employee')->get();
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $where .= " AND tc.clocked_at BETWEEN ? AND ?";
+            $bindings[] = $request->start_date . ' 00:00:00';
+            $bindings[] = $request->end_date . ' 23:59:59';
+        }
 
-        return view('admin.time-clocks.index', compact('timeClocks', 'employees'));
+        $sql = "
+            SELECT
+                tc.id AS time_clock_id,
+                u.name AS employee_name,
+                u.position AS position,
+                u.birth_date,
+                a.name AS manager_name,
+                tc.clocked_at
+            FROM time_clocks tc
+            INNER JOIN users u ON u.id = tc.user_id
+            LEFT JOIN users a ON a.id = u.admin_id
+            $where
+            ORDER BY tc.clocked_at DESC
+        ";
+
+        $perPage = 10;
+        $page = $request->input('page', 1);
+        $offset = ($page - 1) * $perPage;
+
+        $total = count(\DB::select($sql, $bindings));
+        $sql .= " LIMIT $perPage OFFSET $offset";
+
+        $timeClocks = collect(\DB::select($sql, $bindings))->map(function ($item) {
+            $item->age = \Carbon\Carbon::parse($item->birth_date)->age;
+            return $item;
+        });
+
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $timeClocks,
+            $total,
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        $employees = \DB::table('users')->where('role', 'employee')->get();
+
+        return view('admin.time-clocks.index', [
+            'timeClocks' => $paginated,
+            'employees' => $employees
+        ]);
     }
 }
