@@ -197,7 +197,7 @@ class AdminController extends Controller
             $query->where('user_id', $request->employee_id);
         }
 
-        $timeClocks = $query->orderBy('clocked_at', 'desc')->paginate(20);
+        $timeClocks = $query->orderBy('clocked_at', 'desc')->paginate(10);
         
         $employees = User::where('role', 'employee')->get();
 
