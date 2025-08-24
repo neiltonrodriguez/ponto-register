@@ -7,8 +7,16 @@ use App\Http\Controllers\Admin\TimeClockController;
 use App\Http\Controllers\Admin\UtilityController;
 use App\Http\Controllers\EmployeeController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
+    if (Auth::check()) {
+        if (Auth::user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('employee.dashboard');
+    }
+
     return redirect()->route('login');
 });
 

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('cpf', 14)->unique();
+            $table->string('cpf', 11)->unique();
             $table->string('password');
             $table->string('position');
             $table->date('birth_date');

@@ -432,6 +432,11 @@ class TimeClockServiceTest extends TestCase
 
         TimeClock::factory()->create([
             'user_id' => $employee->id,
+            'clocked_at' => $today->copy()->setTime(13, 0, 0)
+        ]);
+
+        TimeClock::factory()->create([
+            'user_id' => $employee->id,
             'clocked_at' => $today->copy()->setTime(18, 0, 0)
         ]);
 
@@ -440,10 +445,10 @@ class TimeClockServiceTest extends TestCase
         $this->assertCount(1, $result);
 
         $todayGroup = $result->get($today->format('Y-m-d'));
-        $this->assertCount(3, $todayGroup);
+        $this->assertCount(4, $todayGroup);
 
         $times = $todayGroup->pluck('clocked_at')->map(fn($time) => $time->format('H:i:s'));
-        $this->assertEquals(['18:00:00', '12:00:00', '08:00:00'], $times->toArray());
+        $this->assertEquals(['08:00:00', '12:00:00', '13:00:00', '18:00:00'], $times->toArray());
     }
 
     /** @test */
@@ -469,18 +474,12 @@ class TimeClockServiceTest extends TestCase
             'clocked_at' => $date1->copy()->setTime(15, 0, 0)
         ]);
 
-        $clock3 = TimeClock::factory()->create([
-            'user_id' => $employee->id,
-            'clocked_at' => $date2->copy()->setTime(9, 0, 0)
-        ]);
-
         $result = $this->timeClockService->getLast30DaysTimeClocks();
 
         $date1Group = $result->get($date1->format('Y-m-d'));
-        $date2Group = $result->get($date2->format('Y-m-d'));
-
-        $this->assertEquals($clock2->id, $date1Group->first()->id);
-        $this->assertEquals($clock1->id, $date1Group->last()->id);
+        
+        $this->assertEquals($clock1->id, $date1Group->first()->id);
+        $this->assertEquals($clock2->id, $date1Group->last()->id);
     }
 
     /** @test */

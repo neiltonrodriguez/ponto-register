@@ -24,7 +24,7 @@ fi
 echo "Executando testes..."
 php artisan test tests/Unit/
 
-php artisan migrate --force
+php artisan migrate:fresh --force
 php artisan db:seed --force
 
 exec php-fpm
