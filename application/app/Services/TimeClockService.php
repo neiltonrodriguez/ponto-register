@@ -73,7 +73,10 @@ class TimeClockService
             ->where('clocked_at', '>=', now()->subDays(30))
             ->orderBy('clocked_at', 'desc')
             ->get()
-            ->groupBy(fn($tc) => $tc->clocked_at->format('Y-m-d'));
+            ->groupBy(fn($tc) => $tc->clocked_at->format('Y-m-d'))
+            ->map(function ($group) {
+                return $group->sortBy('clocked_at');
+            });
     }
 
     public function clockIn(Request $request): TimeClock

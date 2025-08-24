@@ -2,31 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TimeClock;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Services\TimeClockService;
 
 class EmployeeController extends Controller
 {
+    protected $timeClockService;
+
+    public function __construct(TimeClockService $timeClockService)
+    {
+        $this->timeClockService = $timeClockService;
+    }
+
     public function dashboard()
     {
-        $recentTimeClocks = Auth::user()->timeClocks()
-            ->orderBy('clocked_at', 'desc')
-            ->take(10)
-            ->get();
+        $timeClocksByDay = $this->timeClockService->getLast30DaysTimeClocks();
 
-        return view('employee.dashboard', compact('recentTimeClocks'));
+        return view('employee.dashboard', compact('timeClocksByDay'));
     }
 
     public function clockIn(Request $request)
     {
-        TimeClock::create([
-            'user_id' => Auth::id(),
-            'clocked_at' => now(),
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+        $timeClock = $this->timeClockService->clockIn($request);
 
-        return redirect()->back()->with('success', 'Time clocked successfully!');
+        if (!$timeClock) {
+            return redirect()->back()->with('error', 'Você já bateu o ponto 4 vezes hoje.');
+        }
+
+        return redirect()->back()->with('success', 'Ponto registrado com sucesso!');
     }
 }
